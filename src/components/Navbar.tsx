@@ -12,6 +12,12 @@ export default function Navbar() {
             <Link href="/prompts" className="text-gray-600 hover:text-blue-600 font-medium">
               Prompts
             </Link>
+            <Link href="/categories" className="text-gray-600 hover:text-blue-600 font-medium">
+              Categories
+            </Link>
+            <Link href="/tags" className="text-gray-600 hover:text-blue-600 font-medium">
+              Tags
+            </Link>
             <Link href="/prompts?type=skill" className="text-gray-600 hover:text-blue-600 font-medium">
               Skills
             </Link>
