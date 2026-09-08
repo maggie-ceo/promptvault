@@ -28,13 +28,13 @@ export default function PromptCard({ prompt }: { prompt: Prompt }) {
           {prompt.content}
         </p>
         <div className="flex flex-wrap gap-1">
-          {prompt.tags.slice(0, 3).map((tag) => (
+          {(prompt.tags || []).slice(0, 3).map((tag) => (
             <span key={tag} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
               #{tag}
             </span>
           ))}
-          {prompt.tags.length > 3 && (
-            <span className="text-xs text-gray-400">+{prompt.tags.length - 3}</span>
+          {(prompt.tags || []).length > 3 && (
+            <span className="text-xs text-gray-400">+{(prompt.tags || []).length - 3}</span>
           )}
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
