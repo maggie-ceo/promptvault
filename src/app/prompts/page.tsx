@@ -275,27 +275,67 @@ function BrowsePageContent() {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Pagination - Google Style */}
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              {page > 1 && (
-                <button
-                  onClick={() => setPage(p => p - 1)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            <div className="flex items-center justify-center gap-1 mt-10">
+              {/* Previous */}
+              {page > 1 ? (
+                <a
+                  href={`/prompts?page=${page - 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
+                  className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
                 >
-                  ← Prev
-                </button>
+                  ← Previous
+                </a>
+              ) : (
+                <span className="px-4 py-2 text-sm text-gray-400 cursor-not-allowed">← Previous</span>
               )}
-              <span className="px-4 py-2 text-gray-600">
-                Page {page} of {totalPages}
-              </span>
-              {page < totalPages && (
-                <button
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+
+              {/* Page Numbers */}
+              {(() => {
+                const pages: (number | '...')[] = [];
+                const maxVisible = 7;
+
+                if (totalPages <= maxVisible) {
+                  // Show all pages
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  // Show first, last, and around current
+                  pages.push(1);
+                  if (page > 3) pages.push('...');
+                  const start = Math.max(2, page - 1);
+                  const end = Math.min(totalPages - 1, page + 1);
+                  for (let i = start; i <= end; i++) pages.push(i);
+                  if (page < totalPages - 2) pages.push('...');
+                  pages.push(totalPages);
+                }
+
+                return pages.map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`dots-${idx}`} className="px-3 py-2 text-sm text-gray-400">...</span>
+                  ) : p === page ? (
+                    <span key={p} className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded">{p}</span>
+                  ) : (
+                    <a
+                      key={p}
+                      href={`/prompts?page=${p}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
+                      className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
+                    >
+                      {p}
+                    </a>
+                  )
+                );
+              })()}
+
+              {/* Next */}
+              {page < totalPages ? (
+                <a
+                  href={`/prompts?page=${page + 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
+                  className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
                 >
                   Next →
-                </button>
+                </a>
+              ) : (
+                <span className="px-4 py-2 text-sm text-gray-400 cursor-not-allowed">Next →</span>
               )}
             </div>
           )}
