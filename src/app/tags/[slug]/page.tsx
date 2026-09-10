@@ -6,6 +6,27 @@ import PromptCard from '@/components/PromptCard';
 
 export const revalidate = 60;
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const { data: tag } = await supabase
+    .from('tags')
+    .select('name')
+    .eq('slug', slug)
+    .single();
+
+  if (!tag) {
+    return { title: 'Tag Not Found — PromptVault' };
+  }
+
+  return {
+    title: `#${tag.name} Prompts — PromptVault`,
+    description: `Browse prompts tagged with ${tag.name} on PromptVault.`,
+    alternates: {
+      canonical: `/tags/${slug}`,
+    },
+  };
+}
+
 async function getTag(slug: string): Promise<Tag | null> {
   const { data, error } = await supabase
     .from('tags')
