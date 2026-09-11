@@ -128,24 +128,38 @@ export default function PromptDetailClient({ prompt, relatedPrompts }: Props) {
         >
           Download .txt
         </a>
-        <div className="relative">
+      </div>
+
+      {/* Assistant Handoff */}
+      <div className="mt-4 p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+        <h3 className="text-sm font-medium text-[var(--foreground)] mb-2">Use with your assistant</h3>
+        <p className="text-xs text-[var(--muted)] mb-3">Copy the prompt first, then open your preferred assistant in a new tab.</p>
+        <div className="flex flex-wrap gap-2">
           <a
-            href={`https://chat.openai.com/?prompt=${encodeURIComponent(prompt.content?.substring(0, 200) || '')}`}
+            href="https://chat.openai.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium hover:bg-[var(--background)]"
+            className="px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm hover:bg-[var(--surface)] transition-colors"
           >
-            Open in ChatGPT
+            Open ChatGPT
+          </a>
+          <a
+            href="https://claude.ai/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm hover:bg-[var(--surface)] transition-colors"
+          >
+            Open Claude
+          </a>
+          <a
+            href="https://gemini.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 border border-[var(--border)] rounded-lg text-sm hover:bg-[var(--surface)] transition-colors"
+          >
+            Open Gemini
           </a>
         </div>
-        <a
-          href={`https://claude.ai/new?prompt=${encodeURIComponent(prompt.content?.substring(0, 200) || '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium hover:bg-[var(--background)]"
-        >
-          Open in Claude
-        </a>
       </div>
 
       {/* Usage Notes */}

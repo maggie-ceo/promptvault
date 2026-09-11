@@ -9,6 +9,27 @@ const typeLabels: Record<string, string> = {
   workflow: 'Workflow',
 };
 
+function extractExcerpt(content: string, maxLen: number = 120): string {
+  if (!content) return '';
+  // Remove Markdown code fences
+  let cleaned = content.replace(/```[\s\S]*?```/g, ' ');
+  // Remove inline code backticks
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+  // Remove Markdown headers
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+  // Remove bold/italic markers
+  cleaned = cleaned.replace(/(\*\*|__|\*|_)(.*?)\1/g, '$2');
+  // Remove link syntax, keep text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  // Normalize whitespace
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  // Truncate
+  if (cleaned.length > maxLen) {
+    cleaned = cleaned.substring(0, maxLen).trim() + '…';
+  }
+  return cleaned;
+}
+
 export default function PromptCard({ prompt }: { prompt: any }) {
   const [copied, setCopied] = useState(false);
 
@@ -23,6 +44,7 @@ export default function PromptCard({ prompt }: { prompt: any }) {
   };
 
   const tags = prompt.tags || [];
+  const excerpt = extractExcerpt(prompt.content);
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col">
@@ -31,9 +53,11 @@ export default function PromptCard({ prompt }: { prompt: any }) {
         <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
           {typeLabels[prompt.type] || 'Prompt'}
         </span>
-        <span className="text-xs text-[var(--muted)]">
-          {prompt.copies_count || 0} copies
-        </span>
+        {(prompt.copies_count || 0) > 0 && (
+          <span className="text-xs text-[var(--muted)]">
+            {prompt.copies_count} copies
+          </span>
+        )}
       </div>
 
       {/* Title */}
@@ -45,7 +69,7 @@ export default function PromptCard({ prompt }: { prompt: any }) {
 
       {/* Excerpt */}
       <p className="text-sm text-[var(--muted)] line-clamp-3 mb-4 flex-1">
-        {prompt.content}
+        {excerpt}
       </p>
 
       {/* Tags */}
