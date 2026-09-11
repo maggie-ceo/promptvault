@@ -4,12 +4,14 @@ import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PromptCard from '@/components/PromptCard';
+import { useBookmarks } from '@/lib/bookmarks';
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
 function BrowsePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toggle: toggleBookmark, isBookmarked } = useBookmarks();
   const [prompts, setPrompts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
@@ -299,7 +301,12 @@ function BrowsePageContent() {
           {showResults && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               {prompts.map(prompt => (
-                <PromptCard key={prompt.id} prompt={prompt} />
+                <PromptCard 
+                  key={prompt.id} 
+                  prompt={prompt} 
+                  isBookmarked={isBookmarked(prompt.id)}
+                  onToggleBookmark={() => toggleBookmark(prompt.id)}
+                />
               ))}
             </div>
           )}

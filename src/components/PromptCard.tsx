@@ -11,26 +11,19 @@ const typeLabels: Record<string, string> = {
 
 function extractExcerpt(content: string, maxLen: number = 120): string {
   if (!content) return '';
-  // Remove Markdown code fences
   let cleaned = content.replace(/```[\s\S]*?```/g, ' ');
-  // Remove inline code backticks
   cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
-  // Remove Markdown headers
   cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
-  // Remove bold/italic markers
   cleaned = cleaned.replace(/(\*\*|__|\*|_)(.*?)\1/g, '$2');
-  // Remove link syntax, keep text
   cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-  // Normalize whitespace
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  // Truncate
   if (cleaned.length > maxLen) {
     cleaned = cleaned.substring(0, maxLen).trim() + '…';
   }
   return cleaned;
 }
 
-export default function PromptCard({ prompt }: { prompt: any }) {
+export default function PromptCard({ prompt, isBookmarked, onToggleBookmark }: { prompt: any; isBookmarked?: boolean; onToggleBookmark?: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -53,11 +46,20 @@ export default function PromptCard({ prompt }: { prompt: any }) {
         <span className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">
           {typeLabels[prompt.type] || 'Prompt'}
         </span>
-        {(prompt.copies_count || 0) > 0 && (
-          <span className="text-xs text-[var(--muted)]">
-            {prompt.copies_count} copies
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {(prompt.copies_count || 0) > 0 && (
+            <span className="text-xs text-[var(--muted)]">{prompt.copies_count} copies</span>
+          )}
+          {onToggleBookmark && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleBookmark(); }}
+              className={`text-sm ${isBookmarked ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--accent)]'}`}
+              aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this prompt'}
+            >
+              {isBookmarked ? '★' : '☆'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Title */}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import TemplateCustomizer from '@/components/TemplateCustomizer';
+import { useBookmarks } from '@/lib/bookmarks';
 
 interface Props {
   prompt: any;
@@ -12,6 +13,8 @@ interface Props {
 export default function PromptDetailClient({ prompt, relatedPrompts }: Props) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const { toggle: toggleBookmark, isBookmarked } = useBookmarks();
+  const bookmarked = isBookmarked(prompt.id);
 
   const handleCopy = async () => {
     if (prompt?.content) {
@@ -121,6 +124,16 @@ export default function PromptDetailClient({ prompt, relatedPrompts }: Props) {
           className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
         >
           {copied ? 'Copied!' : copyFailed ? 'Copy failed — try again' : 'Copy to Clipboard'}
+        </button>
+        <button
+          onClick={() => toggleBookmark(prompt.id)}
+          className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
+            bookmarked 
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10' 
+              : 'border-[var(--border)] hover:bg-[var(--background)]'
+          }`}
+        >
+          {bookmarked ? '★ Saved' : '☆ Save'}
         </button>
         <a
           href={`/api/prompts/${prompt.id}/download`}
