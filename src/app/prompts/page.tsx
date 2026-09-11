@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PromptCard from '@/components/PromptCard';
@@ -124,6 +124,15 @@ function BrowsePageContent() {
     setPage(1);
     loadPrompts();
   };
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (page === 1) loadPrompts();
+      else setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const clearFilters = () => {
     setSearch('');

@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import TemplateCustomizer from '@/components/TemplateCustomizer';
 
 interface Props {
   prompt: any;
+  relatedPrompts: any[];
 }
 
-export default function PromptDetailClient({ prompt }: Props) {
+export default function PromptDetailClient({ prompt, relatedPrompts }: Props) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
 
@@ -84,6 +86,9 @@ export default function PromptDetailClient({ prompt }: Props) {
           </pre>
         </div>
 
+        {/* Template Customizer */}
+        <TemplateCustomizer content={prompt.content} />
+
         {/* Author & Date */}
         <div className="flex items-center justify-between pt-6 border-t border-[var(--border)]">
           <div className="flex items-center gap-3">
@@ -123,6 +128,24 @@ export default function PromptDetailClient({ prompt }: Props) {
         >
           Download .txt
         </a>
+        <div className="relative">
+          <a
+            href={`https://chat.openai.com/?prompt=${encodeURIComponent(prompt.content?.substring(0, 200) || '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium hover:bg-[var(--background)]"
+          >
+            Open in ChatGPT
+          </a>
+        </div>
+        <a
+          href={`https://claude.ai/new?prompt=${encodeURIComponent(prompt.content?.substring(0, 200) || '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium hover:bg-[var(--background)]"
+        >
+          Open in Claude
+        </a>
       </div>
 
       {/* Usage Notes */}
@@ -148,6 +171,25 @@ export default function PromptDetailClient({ prompt }: Props) {
               <pre className="text-sm text-[var(--muted)] whitespace-pre-wrap font-mono">{prompt.example_output}</pre>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Related Prompts */}
+      {relatedPrompts.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-[var(--border)]">
+          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">Related Prompts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {relatedPrompts.map(p => (
+              <Link
+                key={p.id}
+                href={`/prompts/${p.id}`}
+                className="block p-4 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:shadow-md transition"
+              >
+                <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1 line-clamp-2">{p.title}</h3>
+                <p className="text-xs text-[var(--muted)] line-clamp-2">{p.content?.substring(0, 80)}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

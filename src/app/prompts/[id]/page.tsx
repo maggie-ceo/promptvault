@@ -71,5 +71,15 @@ export default async function PromptDetailPage({ params }: Props) {
     );
   }
 
-  return <PromptDetailClient prompt={prompt} />;
+  // Fetch related prompts (same tags, excluding current)
+  const { data: relatedPrompts } = await supabase
+    .from('prompts')
+    .select('*')
+    .eq('status', 'published')
+    .neq('id', id)
+    .contains('tags', prompt.tags || [])
+    .order('likes_count', { ascending: false })
+    .limit(3);
+
+  return <PromptDetailClient prompt={prompt} relatedPrompts={relatedPrompts || []} />;
 }
