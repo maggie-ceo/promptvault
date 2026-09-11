@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PromptCard from '@/components/PromptCard';
 import Link from 'next/link';
 
 function BrowsePageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [prompts, setPrompts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -15,6 +14,7 @@ function BrowsePageContent() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const limit = 12;
 
   // Filters
@@ -48,7 +48,7 @@ function BrowsePageContent() {
       .from('tags')
       .select('*')
       .order('count', { ascending: false })
-      .limit(50);
+      .limit(30);
     setTags(data || []);
   }
 
@@ -121,45 +121,46 @@ function BrowsePageContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     loadPrompts();
   };
+
+  const clearFilters = () => {
+    setSearch('');
+    setSelectedType('');
+    setSelectedCategory('');
+    setSelectedTags([]);
+    setPage(1);
+  };
+
+  const activeFilterCount = [selectedType, selectedCategory, ...selectedTags].filter(Boolean).length;
 
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex gap-8">
-        {/* Left Sidebar */}
-        <aside className="w-64 flex-shrink-0 hidden lg:block">
-          <div className="sticky top-20 space-y-6">
+        {/* Left Sidebar - 220px */}
+        <aside className="w-[220px] flex-shrink-0 hidden lg:block">
+          <div className="sticky top-20 space-y-5">
             {/* Search */}
-            <div>
-              <form onSubmit={handleSearch}>
-                <input
-                  type="text"
-                  placeholder="Search prompts..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </form>
-            </div>
-
-            {/* AI Search Toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">AI Search</span>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1" />
-              </button>
-            </div>
+            <form onSubmit={handleSearch}>
+              <input
+                type="text"
+                placeholder="Search prompts…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent bg-[var(--surface)]"
+              />
+            </form>
 
             {/* Type Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1.5">Type</label>
               <select
                 value={selectedType}
                 onChange={(e) => { setSelectedType(e.target.value); setPage(1); }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] bg-[var(--surface)]"
               >
                 <option value="">All</option>
                 <option value="prompt">Prompts</option>
@@ -170,11 +171,11 @@ function BrowsePageContent() {
 
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1.5">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => { setSelectedCategory(e.target.value); setPage(1); }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] bg-[var(--surface)]"
               >
                 <option value="">All Categories</option>
                 {categories.filter(c => !c.parent_id).map(cat => (
@@ -185,11 +186,11 @@ function BrowsePageContent() {
 
             {/* Sort */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+              <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1.5">Sort by</label>
               <select
                 value={sortBy}
                 onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--accent)] bg-[var(--surface)]"
               >
                 <option value="latest">Newest</option>
                 <option value="popular">Popular</option>
@@ -198,18 +199,17 @@ function BrowsePageContent() {
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-              <div className="max-h-64 overflow-y-auto space-y-2">
+              <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1.5">Tags</label>
+              <div className="max-h-56 overflow-y-auto space-y-1 pr-1">
                 {tags.map(tag => (
-                  <label key={tag.id} className="flex items-center gap-2 cursor-pointer">
+                  <label key={tag.id} className="flex items-center gap-2 cursor-pointer py-0.5">
                     <input
                       type="checkbox"
                       checked={selectedTags.includes(tag.name)}
                       onChange={() => handleTagToggle(tag.name)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)]"
                     />
-                    <span className="text-sm text-gray-600">{tag.name}</span>
-                    <span className="text-xs text-gray-400 ml-auto">({tag.count})</span>
+                    <span className="text-sm text-[var(--foreground)]">{tag.name}</span>
                   </label>
                 ))}
               </div>
@@ -218,88 +218,103 @@ function BrowsePageContent() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1">
-          {/* Category Pills */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              onClick={() => { setSelectedCategory(''); setPage(1); }}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                !selectedCategory
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All Categories
-            </button>
-            {categories.filter(c => !c.parent_id).map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => { setSelectedCategory(cat.slug); setPage(1); }}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  selectedCategory === cat.slug
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {cat.icon} {cat.name}
-              </button>
-            ))}
+        <main className="flex-1 min-w-0">
+          {/* Results Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h1 className="text-[28px] font-bold text-[var(--foreground)]">Prompts</h1>
+              <p className="text-sm text-[var(--muted)]">{total} prompts found</p>
+            </div>
           </div>
 
-          {/* Results Count */}
-          <div className="mb-4 text-sm text-gray-500">
-            {total} prompt{total !== 1 ? 's' : ''} found
-          </div>
+          {/* Active Filters / Clear */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs text-[var(--muted)]">{activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active</span>
+              <button
+                onClick={clearFilters}
+                className="text-xs text-[var(--accent)] hover:underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {/* Mobile Filter Toggle */}
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="lg:hidden mb-4 px-4 py-2 text-sm border border-[var(--border)] rounded-lg bg-[var(--surface)]"
+          >
+            Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </button>
+
+          {/* Mobile Filters */}
+          {mobileFiltersOpen && (
+            <div className="lg:hidden mb-6 p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] space-y-4">
+              <form onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  placeholder="Search prompts…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-[var(--border)] rounded-lg"
+                />
+              </form>
+              <select value={selectedType} onChange={(e) => { setSelectedType(e.target.value); setPage(1); }} className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg">
+                <option value="">All Types</option>
+                <option value="prompt">Prompts</option>
+                <option value="skill">Skills</option>
+                <option value="workflow">Workflows</option>
+              </select>
+              <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setPage(1); }} className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg">
+                <option value="">All Categories</option>
+                {categories.filter(c => !c.parent_id).map(cat => (
+                  <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                ))}
+              </select>
+              <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }} className="w-full px-3 py-1.5 text-sm border border-[var(--border)] rounded-lg">
+                <option value="latest">Newest</option>
+                <option value="popular">Popular</option>
+              </select>
+            </div>
+          )}
 
           {/* Prompts Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200 rounded-lg"></div>
+                  <div className="h-52 bg-gray-200 rounded-xl"></div>
                 </div>
               ))}
             </div>
           ) : prompts.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-500 text-lg">No prompts found.</p>
-              <Link href="/submit" className="text-blue-600 hover:underline mt-2 inline-block">
-                Be the first to submit one!
-              </Link>
+              <p className="text-[var(--muted)] text-lg mb-2">No prompts found.</p>
+              <p className="text-sm text-[var(--muted)]">Try a different search term or clear your filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               {prompts.map(prompt => (
                 <PromptCard key={prompt.id} prompt={prompt} />
               ))}
             </div>
           )}
 
-          {/* Pagination - Google Style */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-1 mt-10">
-              {/* Previous */}
               {page > 1 ? (
-                <a
-                  href={`/prompts?page=${page - 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
-                  className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
-                >
-                  ← Previous
-                </a>
+                <a href={`/prompts?page=${page - 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`} className="px-4 py-2 text-sm text-[var(--accent)] hover:underline rounded">← Previous</a>
               ) : (
                 <span className="px-4 py-2 text-sm text-gray-400 cursor-not-allowed">← Previous</span>
               )}
-
-              {/* Page Numbers */}
               {(() => {
                 const pages: (number | '...')[] = [];
                 const maxVisible = 7;
-
                 if (totalPages <= maxVisible) {
-                  // Show all pages
                   for (let i = 1; i <= totalPages; i++) pages.push(i);
                 } else {
-                  // Show first, last, and around current
                   pages.push(1);
                   if (page > 3) pages.push('...');
                   const start = Math.max(2, page - 1);
@@ -308,92 +323,24 @@ function BrowsePageContent() {
                   if (page < totalPages - 2) pages.push('...');
                   pages.push(totalPages);
                 }
-
                 return pages.map((p, idx) =>
                   p === '...' ? (
-                    <span key={`dots-${idx}`} className="px-3 py-2 text-sm text-gray-400">...</span>
+                    <span key={`dots-${idx}`} className="px-3 py-2 text-sm text-gray-400">…</span>
                   ) : p === page ? (
-                    <span key={p} className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded">{p}</span>
+                    <span key={p} className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-white rounded">{p}</span>
                   ) : (
-                    <a
-                      key={p}
-                      href={`/prompts?page=${p}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
-                      className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
-                    >
-                      {p}
-                    </a>
+                    <a key={p} href={`/prompts?page=${p}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`} className="px-4 py-2 text-sm text-[var(--accent)] hover:underline rounded">{p}</a>
                   )
                 );
               })()}
-
-              {/* Next */}
               {page < totalPages ? (
-                <a
-                  href={`/prompts?page=${page + 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`}
-                  className="px-4 py-2 text-sm text-blue-600 hover:underline rounded"
-                >
-                  Next →
-                </a>
+                <a href={`/prompts?page=${page + 1}${selectedType ? `&type=${selectedType}` : ''}${selectedCategory ? `&category=${selectedCategory}` : ''}${search ? `&q=${search}` : ''}&sort=${sortBy}`} className="px-4 py-2 text-sm text-[var(--accent)] hover:underline rounded">Next →</a>
               ) : (
                 <span className="px-4 py-2 text-sm text-gray-400 cursor-not-allowed">Next →</span>
               )}
             </div>
           )}
         </main>
-
-        {/* Right Sidebar */}
-        <aside className="w-72 flex-shrink-0 hidden xl:block">
-          <div className="sticky top-20 space-y-6">
-            {/* Featured Card */}
-            <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-6 text-white">
-              <h3 className="text-lg font-bold mb-2">🚀 CodeRabbit</h3>
-              <p className="text-sm text-blue-100 mb-4">
-                AI Code Review Assistant - Expert code reviewer for your team
-              </p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="text-xs bg-white/20 px-2 py-1 rounded">Code Review</span>
-                <span className="text-xs bg-white/20 px-2 py-1 rounded">Development</span>
-                <span className="text-xs bg-white/20 px-2 py-1 rounded">Security</span>
-              </div>
-              <a
-                href="#"
-                className="inline-block px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50"
-              >
-                Learn More
-              </a>
-            </div>
-
-            {/* Submit CTA */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Share Your Prompt</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Have a great prompt? Share it with the community!
-              </p>
-              <Link
-                href="/submit"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-              >
-                + Create Prompt
-              </Link>
-            </div>
-
-            {/* Popular Tags */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {tags.slice(0, 15).map(tag => (
-                  <button
-                    key={tag.id}
-                    onClick={() => handleTagToggle(tag.name)}
-                    className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    #{tag.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );
@@ -401,7 +348,7 @@ function BrowsePageContent() {
 
 export default function BrowsePage() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8">Loading...</div>}>
+    <Suspense fallback={<div className="max-w-[1440px] mx-auto px-4 py-8">Loading…</div>}>
       <BrowsePageContent />
     </Suspense>
   );

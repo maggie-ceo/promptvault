@@ -1,15 +1,42 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --background: #f7f7f4;
+    --foreground: #171717;
+    --muted: #6b6b63;
+    --surface: #ffffff;
+    --border: #e5e5df;
+    --accent: #e4572e;
+    --accent-foreground: #ffffff;
+    --success: #2f855a;
+    --danger: #c53030;
+  }
+
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 }
 
 @layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
